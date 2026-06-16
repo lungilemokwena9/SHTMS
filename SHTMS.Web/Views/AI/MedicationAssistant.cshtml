@@ -1,0 +1,342 @@
+@model MedicationAssistantViewModel
+@{
+    ViewData["Title"] = "Medication Assistant";
+    var medications = ViewBag.Medications as List<Medication>;
+    var isStaff = User.IsInRole("Doctor") || User.IsInRole("Nurse") || User.IsInRole("Pharmacist") || User.IsInRole("Admin");
+}
+
+<div class="page-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">AI Hub</a></li>
+            <li class="breadcrumb-item active">Medication Assistant</li>
+        </ol>
+    </nav>
+    <h2><i class="fas fa-pills me-2 text-success"></i>Medication Assistant</h2>
+    <p class="text-muted">Check drug interactions, calculate dosages, and keep medication info in context.</p>
+</div>
+
+@if (isStaff)
+{
+    <div class="alert alert-info border-0 shadow-sm mb-3">
+        <i class="fas fa-user-shield me-2"></i>
+        Staff-only medication tools are active in this view.
+    </div>
+}
+
+<!-- Tab Navigation -->
+<ul class="nav nav-pills mb-4" id="medTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(Model.ActionType == "interaction" ? "active" : "")" id="interaction-tab" data-bs-toggle="pill" data-bs-target="#interaction" type="button" role="tab">
+            <i class="fas fa-exclamation-triangle me-1"></i> Drug Interactions
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(Model.ActionType == "dosage" ? "active" : "")" id="dosage-tab" data-bs-toggle="pill" data-bs-target="#dosage" type="button" role="tab">
+            <i class="fas fa-calculator me-1"></i> Dosage Calculator
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(Model.ActionType == "info" ? "active" : "")" id="info-tab" data-bs-toggle="pill" data-bs-target="#info" type="button" role="tab">
+            <i class="fas fa-info-circle me-1"></i> Medication Info
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- ═══ DRUG INTERACTIONS ═══ -->
+    <div class="tab-pane fade @(Model.ActionType == "interaction" ? "show active" : "")" id="interaction" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Check Drug Interactions</h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="MedicationAssistant" method="post">
+                            <input type="hidden" name="ActionType" value="interaction" />
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Select Medications (2 or more)</label>
+                                <select name="SelectedMedicationNames" class="form-select" multiple size="10" required>
+                                    @if (medications != null)
+                                    {
+                                        @foreach (var med in medications)
+                                        {
+                                            var selected = Model.SelectedMedicationNames?.Contains(med.MedicationName) == true;
+                                            <option value="@med.MedicationName" selected="@selected">
+                                                @med.MedicationName @(med.Strength != null ? $"({med.Strength})" : "") @(med.IsLowStock ? "⚠️" : "")
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                                <div class="form-text">Hold Ctrl/Cmd to select multiple medications.</div>
+                            </div>
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="fas fa-search me-1"></i> Check Interactions
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                @if (Model.InteractionResults.Any())
+                {
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0"><i class="fas fa-clipboard-check me-2 text-success"></i>Interaction Results</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            @foreach (var result in Model.InteractionResults)
+                            {
+                                var severityColor = result.Severity switch
+                                {
+                                    "Severe" => "danger",
+                                    "Moderate" => "warning",
+                                    "None Detected" => "success",
+                                    _ => "secondary"
+                                };
+
+                                <div class="p-3 border-bottom">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-pills me-2 text-muted"></i>@result.Medications
+                                        </h6>
+                                        <span class="badge bg-@severityColor">@result.Severity</span>
+                                    </div>
+                                    <p class="mb-0 ms-4 text-muted">@result.Description</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-shield-alt fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">Select medications to check for interactions</h5>
+                            <p class="text-muted small">Our database covers common drug-drug interactions including antibiotics, cardiovascular drugs, psychiatric medications, and more.</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ DOSAGE CALCULATOR ═══ -->
+    <div class="tab-pane fade @(Model.ActionType == "dosage" ? "show active" : "")" id="dosage" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Dosage Calculator</h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="MedicationAssistant" method="post">
+                            <input type="hidden" name="ActionType" value="dosage" />
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Medication</label>
+                                <select name="MedicationName" class="form-select" required>
+                                    <option value="">-- Select Medication --</option>
+                                    @if (medications != null)
+                                    {
+                                        @foreach (var med in medications)
+                                        {
+                                            var selected = Model.MedicationName == med.MedicationName;
+                                            <option value="@med.MedicationName" selected="@selected">@med.MedicationName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Patient Weight (kg)</label>
+                                    <input type="number" name="PatientWeight" class="form-control" step="0.1" min="0.5" max="300"
+                                           value="@Model.PatientWeight" placeholder="e.g. 70">
+                                    <small class="text-muted">Required for weight-based dosing.</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Patient Age</label>
+                                    <input type="number" name="PatientAge" class="form-control" min="0" max="120"
+                                           value="@Model.PatientAge" placeholder="e.g. 35">
+                                    <small class="text-muted">For pediatric adjustments.</small>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-info w-100">
+                                <i class="fas fa-calculator me-1"></i> Calculate Dosage
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                @if (Model.DosageResult != null)
+                {
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0"><i class="fas fa-prescription me-2 text-info"></i>Dosage Result</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="dosage-display text-center p-4 bg-light rounded mb-3">
+                                <h3 class="text-info mb-1">@Model.DosageResult.Dosage</h3>
+                                <small class="text-muted">@Model.DosageResult.Medication</small>
+                            </div>
+                            <div class="mb-3">
+                                <strong><i class="fas fa-calculator me-1"></i>Calculation:</strong>
+                                <p class="ms-3 text-muted">@Model.DosageResult.Calculation</p>
+                            </div>
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-info-circle me-1"></i> @Model.DosageResult.Notes
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-weight-scale fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">Calculate weight-based dosages</h5>
+                            <p class="text-muted small">Supports pediatric weight-based dosing for common medications. Adult standard dosages also available.</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ MEDICATION INFO ═══ -->
+    <div class="tab-pane fade @(Model.ActionType == "info" ? "show active" : "")" id="info" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Medication Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="MedicationAssistant" method="post">
+                            <input type="hidden" name="ActionType" value="info" />
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Select Medication</label>
+                                <select name="MedicationName" class="form-select" required>
+                                    <option value="">-- Select Medication --</option>
+                                    @if (medications != null)
+                                    {
+                                        @foreach (var med in medications)
+                                        {
+                                            var selected = Model.MedicationName == med.MedicationName;
+                                            <option value="@med.MedicationName" selected="@selected">
+                                                @med.MedicationName @(med.Strength != null ? $"({med.Strength})" : "")
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-search me-1"></i> Get Information
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                @if (Model.MedicationInfo != null)
+                {
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-success"></i>@Model.MedicationInfo.Name</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <small class="text-muted d-block">Generic Name</small>
+                                        <strong>@Model.MedicationInfo.GenericName</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <small class="text-muted d-block">Category</small>
+                                        <strong>@Model.MedicationInfo.Category</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <small class="text-muted d-block">Dosage Form</small>
+                                        <strong>@Model.MedicationInfo.DosageForm</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <small class="text-muted d-block">Strength</small>
+                                        <strong>@Model.MedicationInfo.Strength</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <small class="text-muted d-block">Stock Status</small>
+                                        <strong>@Html.Raw(Model.MedicationInfo.StockStatus)</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <small class="text-muted d-block">Manufacturer</small>
+                                        <strong>@Model.MedicationInfo.Manufacturer</strong>
+                                    </div>
+                                </div>
+                                @if (Model.MedicationInfo.UnitPrice.HasValue)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <small class="text-muted d-block">Unit Price</small>
+                                            <strong>R @Model.MedicationInfo.UnitPrice.Value.ToString("F2")</strong>
+                                        </div>
+                                    </div>
+                                }
+                                @if (Model.MedicationInfo.ExpiryDate.HasValue)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="info-item">
+                                            <small class="text-muted d-block">Expiry Date</small>
+                                            <strong>@Model.MedicationInfo.ExpiryDate.Value.ToString("dd MMM yyyy")</strong>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <hr>
+                            <div class="med-info-text">
+                                <h6><i class="fas fa-file-alt me-1"></i>Details</h6>
+                                <pre class="bg-light p-3 rounded" style="white-space: pre-wrap; font-family: inherit;">@Model.MedicationInfo.Info</pre>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-book-medical fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">Look up medication details</h5>
+                            <p class="text-muted small">Get comprehensive information about any medication in the pharmacy inventory including stock levels, pricing, and expiry dates.</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dosage-display {
+        border: 2px dashed #36b9cc;
+        border-radius: 8px;
+    }
+    .info-item {
+        padding: 0.5rem;
+        background: #f8f9fc;
+        border-radius: 6px;
+    }
+    .nav-pills .nav-link.active {
+        font-weight: 600;
+    }
+</style>

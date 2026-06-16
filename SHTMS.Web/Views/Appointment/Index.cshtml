@@ -1,0 +1,94 @@
+@model IEnumerable<SHTMS.Web.Models.Appointment>
+@{
+    ViewData["Title"] = "Appointments";
+    var canBookAppointment = User.IsInRole("Admin");
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+            <li class="breadcrumb-item active">Appointments</li>
+        </ol>
+    </nav>
+    @if (canBookAppointment)
+    {
+        <a asp-action="Create" class="btn btn-primary"><i class="fas fa-calendar-plus me-2"></i>Book Appointment</a>
+    }
+</div>
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-calendar-check me-2 text-primary"></i>Appointments (@Model.Count())</span>
+        <form method="get" class="d-flex gap-2">
+            <select name="status" class="form-select form-select-sm" style="width:140px;" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                @foreach (var s in new[]{"Scheduled","Confirmed","Completed","Cancelled","No-Show"})
+                {
+                    <option value="@s" selected="@(ViewBag.Status == s ? "selected" : null)">@s</option>
+                }
+            </select>
+            <div class="search-bar">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control form-control-sm" placeholder="Search patient..." style="width:200px;" />
+            </div>
+            <button type="submit" class="btn btn-outline-primary btn-sm">Go</button>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Patient</th><th>Doctor</th><th>Date &amp; Time</th><th>Type</th><th>Reason</th><th>Status</th><th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="patient-avatar" style="width:32px;height:32px;font-size:12px;">@(a.Patient?.FirstName?.Substring(0,1) ?? "?")</div>
+                                        @a.Patient?.FullName
+                                    </div>
+                                </td>
+                                <td>@a.Doctor?.FullName</td>
+                                <td>@a.AppointmentDate.ToString("dd MMM yyyy HH:mm")</td>
+                                <td>
+                                    @if (a.AppointmentType == "Telemedicine")
+                                    { <span class="badge bg-info"><i class="fas fa-video me-1"></i>Tele</span> }
+                                    else
+                                    { <span class="badge bg-secondary"><i class="fas fa-hospital me-1"></i>In-Person</span> }
+                                </td>
+                                <td>@(a.ReasonForVisit != null && a.ReasonForVisit.Length > 30 ? a.ReasonForVisit.Substring(0,30) + "…" : a.ReasonForVisit)</td>
+                                <td><span class="badge status-@a.Status.ToLower()">@a.Status</span></td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a asp-action="Details" asp-route-id="@a.AppointmentID" class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></a>
+                                        <a asp-action="Edit" asp-route-id="@a.AppointmentID" class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></a>
+                                        @if (User.IsInRole("Admin") || User.IsInRole("Doctor"))
+                                        {
+                                            <a asp-action="Delete" asp-route-id="@a.AppointmentID" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="fas fa-calendar-times"></i>
+                <h5>No appointments found</h5>
+                @if (canBookAppointment)
+                {
+                    <a asp-action="Create" class="btn btn-primary mt-2">Book First Appointment</a>
+                }
+            </div>
+        }
+    </div>
+</div>

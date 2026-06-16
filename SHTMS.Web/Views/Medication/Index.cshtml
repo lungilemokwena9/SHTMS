@@ -1,0 +1,76 @@
+@model IEnumerable<SHTMS.Web.Models.Medication>
+@{
+    ViewData["Title"] = "Medications";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+            <li class="breadcrumb-item active">Medications</li>
+        </ol>
+    </nav>
+    @if (User.IsInRole("Admin") || User.IsInRole("Pharmacist"))
+    {
+        <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Add Medication</a>
+    }
+</div>
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-pills me-2 text-primary"></i>Medication Inventory (@Model.Count())</span>
+        <form method="get" class="d-flex gap-2">
+            <div class="search-bar">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" name="search" value="@ViewBag.Search" class="form-control form-control-sm" placeholder="Search medication..." style="width:220px;" />
+            </div>
+            <button type="submit" class="btn btn-outline-primary btn-sm">Search</button>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr><th>Name</th><th>Generic Name</th><th>Category</th><th>Unit Price</th><th>Stock</th><th>Reorder Level</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var m in Model)
+                        {
+                            <tr>
+                                <td><div class="fw-semibold">@m.MedicationName</div><small class="text-muted">@m.Manufacturer</small></td>
+                                <td>@(m.GenericName ?? "—")</td>
+                                <td>@(m.Category ?? "—")</td>
+                                <td>R @m.UnitPrice?.ToString("F2")</td>
+                                <td>
+                                    @if (m.StockQuantity <= m.ReorderLevel)
+                                    {
+                                        <span class="badge bg-danger">@m.StockQuantity (Low!)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">@m.StockQuantity</span>
+                                    }
+                                </td>
+                                <td>@m.ReorderLevel</td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <a asp-action="Details" asp-route-id="@m.MedicationID" class="btn btn-sm btn-outline-info"><i class="fas fa-eye"></i></a>
+                                        <a asp-action="Edit" asp-route-id="@m.MedicationID" class="btn btn-sm btn-outline-warning"><i class="fas fa-edit"></i></a>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <a asp-action="Delete" asp-route-id="@m.MedicationID" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="empty-state"><i class="fas fa-pills"></i><h5>No medications found</h5></div>
+        }
+    </div>
+</div>

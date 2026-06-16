@@ -1,0 +1,188 @@
+@{
+    ViewData["Title"] = "AI Clinical Hub";
+    var alertCount = ViewBag.AlertCount ?? 0;
+    var isStaff = User.IsInRole("Doctor") || User.IsInRole("Nurse") || User.IsInRole("Pharmacist") || User.IsInRole("Admin");
+}
+
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2><i class="fas fa-robot me-2 text-primary"></i>AI Clinical Hub</h2>
+            <p class="text-muted mb-0">Embedded clinical assistant tools for care guidance and workflow support</p>
+        </div>
+        @if (alertCount > 0)
+        {
+            <a asp-action="ClinicalSupport" class="btn btn-danger">
+                <i class="fas fa-bell me-1"></i> @alertCount Unacknowledged Alert(s)
+            </a>
+        }
+    </div>
+</div>
+
+@if (!isStaff)
+{
+    <div class="alert alert-info border-0 shadow-sm mt-3">
+        <i class="fas fa-user-shield me-2"></i>
+        Your view is limited to patient-friendly health tools.
+    </div>
+}
+
+<div class="row g-4 mt-2">
+    <!-- Symptom Checker -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-sm hover-card">
+            <div class="card-body text-center p-4">
+                <div class="ai-icon-circle bg-primary-subtle mb-3">
+                    <i class="fas fa-stethoscope fa-2x text-primary"></i>
+                </div>
+                <h5 class="card-title">Symptom Checker</h5>
+                <p class="text-muted small">Describe your symptoms and get AI-powered analysis with possible conditions, urgency levels, and recommendations.</p>
+                <a asp-action="SymptomChecker" class="btn btn-primary stretched-link">
+                    <i class="fas fa-search me-1"></i> Check Symptoms
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (isStaff)
+    {
+    <!-- Medication Assistant -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-sm hover-card">
+            <div class="card-body text-center p-4">
+                <div class="ai-icon-circle bg-success-subtle mb-3">
+                    <i class="fas fa-pills fa-2x text-success"></i>
+                </div>
+                <h5 class="card-title">Medication Assistant</h5>
+                <p class="text-muted small">Check drug interactions, calculate weight-based dosages, and get detailed medication information.</p>
+                <a asp-action="MedicationAssistant" class="btn btn-success stretched-link">
+                    <i class="fas fa-calculator me-1"></i> Medication Tools
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Scanner -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-sm hover-card">
+            <div class="card-body text-center p-4">
+                <div class="ai-icon-circle bg-warning-subtle mb-3">
+                    <i class="fas fa-camera fa-2x text-warning"></i>
+                </div>
+                <h5 class="card-title">Image Scanner</h5>
+                <p class="text-muted small">Upload and scan prescriptions, lab reports, and ID documents with AI-powered text extraction.</p>
+                <a asp-action="ImageScanner" class="btn btn-warning stretched-link">
+                    <i class="fas fa-upload me-1"></i> Scan Document
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clinical Support -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-sm hover-card">
+            <div class="card-body text-center p-4">
+                <div class="ai-icon-circle bg-danger-subtle mb-3">
+                    <i class="fas fa-heart-pulse fa-2x text-danger"></i>
+                </div>
+                <h5 class="card-title">Clinical Support</h5>
+                <p class="text-muted small">AI vitals analysis, automated alerts for abnormal readings, and clinical decision support dashboard.</p>
+                <a asp-action="ClinicalSupport" class="btn btn-danger stretched-link">
+                    <i class="fas fa-chart-line me-1"></i> View Alerts
+                </a>
+            </div>
+        </div>
+    </div>
+    }
+    else
+    {
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 border-0 shadow-sm hover-card">
+            <div class="card-body text-center p-4">
+                <div class="ai-icon-circle bg-success-subtle mb-3">
+                    <i class="fas fa-user-md fa-2x text-success"></i>
+                </div>
+                <h5 class="card-title">Patient Assistant</h5>
+                <p class="text-muted small">Use the AI hub for symptom guidance and quick access to your care flow.</p>
+                <a asp-controller="AI" asp-action="SymptomChecker" class="btn btn-success stretched-link">
+                    <i class="fas fa-stethoscope me-1"></i> Start Guidance
+                </a>
+            </div>
+        </div>
+    </div>
+    }
+</div>
+
+<!-- AI Features Overview -->
+<div class="row g-4 mt-2">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2 text-primary"></i>How AI Supports Clinical Workflow</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3 text-center">
+                        <div class="p-3">
+                            <div class="step-number">1</div>
+                            <h6 class="mt-2">Describe the Issue</h6>
+                            <small class="text-muted">Assistant triages symptoms or document scans</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="p-3">
+                            <div class="step-number">2</div>
+                            <h6 class="mt-2">Review Guidance</h6>
+                            <small class="text-muted">Medication and safety checks stay in context</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="p-3">
+                            <div class="step-number">3</div>
+                            <h6 class="mt-2">Act or Escalate</h6>
+                            <small class="text-muted">Staff actions remain available where permitted</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <div class="p-3">
+                            <div class="step-number">4</div>
+                            <h6 class="mt-2">Monitor in Place</h6>
+                            <small class="text-muted">Assistant stays visible without leaving the page</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ai-icon-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    .hover-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .hover-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    }
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4e73df, #224abe);
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+</style>

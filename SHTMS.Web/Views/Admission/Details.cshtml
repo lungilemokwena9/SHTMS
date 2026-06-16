@@ -1,0 +1,34 @@
+@model SHTMS.Web.Models.Admission
+@{
+    ViewData["Title"] = "Admission Details";
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Admissions</a></li>
+        <li class="breadcrumb-item active">Details</li>
+    </ol>
+</nav>
+<div class="card" style="max-width:600px;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-bed me-2 text-primary"></i>Admission Details</span>
+        <span class="badge status-@Model.Status.ToLower()">@Model.Status</span>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-4">Patient</dt><dd class="col-sm-8">@Model.Patient?.FullName</dd>
+            <dt class="col-sm-4">Doctor</dt><dd class="col-sm-8">@Model.Doctor?.FullName</dd>
+            <dt class="col-sm-4">Admitted</dt><dd class="col-sm-8">@Model.AdmissionDate.ToString("dd MMM yyyy HH:mm")</dd>
+            <dt class="col-sm-4">Discharged</dt><dd class="col-sm-8">@(Model.DischargeDate.HasValue ? Model.DischargeDate.Value.ToString("dd MMM yyyy HH:mm") : "Still admitted")</dd>
+            <dt class="col-sm-4">Ward</dt><dd class="col-sm-8">@(Model.Ward ?? "—")</dd>
+            <dt class="col-sm-4">Bed</dt><dd class="col-sm-8">@(Model.BedNumber ?? "—")</dd>
+            <dt class="col-sm-4">Diagnosis</dt><dd class="col-sm-8">@(Model.AdmissionReason ?? "—")</dd>
+            <dt class="col-sm-4">Notes</dt><dd class="col-sm-8">@(Model.DischargeNotes ?? "—")</dd>
+            <dt class="col-sm-4">Status</dt><dd class="col-sm-8"><span class="badge status-@Model.Status.ToLower()">@Model.Status</span></dd>
+        </dl>
+        <div class="d-flex gap-2 mt-3">
+            <a asp-action="Edit" asp-route-id="@Model.AdmissionID" class="btn btn-warning btn-sm"><i class="fas fa-edit me-1"></i>Edit</a>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to List</a>
+        </div>
+    </div>
+</div>

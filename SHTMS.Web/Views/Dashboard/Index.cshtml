@@ -1,0 +1,292 @@
+@model SHTMS.Web.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+    var isPatient = Model.UserRole == "Patient";
+    var canRegisterOrBook = User.IsInRole("Admin");
+    var canRecordVitals = User.IsInRole("Admin") || User.IsInRole("Doctor") || User.IsInRole("Nurse");
+}
+
+<!-- STAT CARDS -->
+<div class="row g-3 mb-4">
+    @if (isPatient)
+    {
+        <div class="col-xl-3 col-md-6 col-6">
+            <a asp-controller="Appointment" asp-action="Index" class="stat-card d-flex">
+                <div class="stat-icon bg-green"><i class="fas fa-calendar-check"></i></div>
+                <div>
+                    <div class="stat-value">@Model.MyAppointments</div>
+                    <div class="stat-label">My Appointments</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-md-6 col-6">
+            <a asp-controller="Prescription" asp-action="Index" class="stat-card d-flex">
+                <div class="stat-icon bg-purple"><i class="fas fa-prescription-bottle-alt"></i></div>
+                <div>
+                    <div class="stat-value">@Model.MyPrescriptions</div>
+                    <div class="stat-label">My Prescriptions</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-md-6 col-6">
+            <a asp-controller="Billing" asp-action="Index" class="stat-card d-flex">
+                <div class="stat-icon bg-red"><i class="fas fa-file-invoice-dollar"></i></div>
+                <div>
+                    <div class="stat-value">@Model.MyOutstandingBills</div>
+                    <div class="stat-label">My Bills</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-md-6 col-6">
+            <a asp-controller="AI" asp-action="Index" class="stat-card d-flex">
+                <div class="stat-icon bg-teal"><i class="fas fa-robot"></i></div>
+                <div>
+                    <div class="stat-value">@Model.UnacknowledgedAlerts</div>
+                    <div class="stat-label">Health Alerts</div>
+                </div>
+            </a>
+        </div>
+    }
+    else
+    {
+    <div class="col-xl-2 col-md-4 col-6">
+        <a asp-controller="Patient" asp-action="Index" class="stat-card d-flex">
+            <div class="stat-icon bg-blue"><i class="fas fa-user-injured"></i></div>
+            <div>
+                <div class="stat-value">@Model.TotalPatients</div>
+                <div class="stat-label">Total Patients</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <a asp-controller="Appointment" asp-action="Index" class="stat-card d-flex">
+            <div class="stat-icon bg-green"><i class="fas fa-calendar-check"></i></div>
+            <div>
+                <div class="stat-value">@Model.TodayAppointments</div>
+                <div class="stat-label">Today's Appts</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <a asp-controller="Admission" asp-action="Index" class="stat-card d-flex">
+            <div class="stat-icon bg-orange"><i class="fas fa-bed"></i></div>
+            <div>
+                <div class="stat-value">@Model.ActiveAdmissions</div>
+                <div class="stat-label">Admitted</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <a asp-controller="Billing" asp-action="Index" class="stat-card d-flex">
+            <div class="stat-icon bg-red"><i class="fas fa-file-invoice-dollar"></i></div>
+            <div>
+                <div class="stat-value">@Model.PendingBills</div>
+                <div class="stat-label">Pending Bills</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <a asp-controller="Medication" asp-action="Index" class="stat-card d-flex">
+            <div class="stat-icon bg-purple"><i class="fas fa-pills"></i></div>
+            <div>
+                <div class="stat-value">@Model.LowStockMedications</div>
+                <div class="stat-label">Low Stock Meds</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <a asp-controller="AI" asp-action="ClinicalSupport" class="stat-card d-flex">
+            <div class="stat-icon bg-teal"><i class="fas fa-robot"></i></div>
+            <div>
+                <div class="stat-value">@Model.UnacknowledgedAlerts</div>
+                <div class="stat-label">AI Alerts</div>
+            </div>
+        </a>
+    </div>
+    }
+</div>
+
+<div class="row g-3">
+    <!-- UPCOMING APPOINTMENTS -->
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-calendar-alt me-2 text-primary"></i>@(isPatient ? "My Upcoming Appointments" : "Upcoming Appointments")</span>
+                @if (canRegisterOrBook)
+                {
+                    <a asp-controller="Appointment" asp-action="Create" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i>Book
+                    </a>
+                }
+            </div>
+            <div class="card-body p-0">
+                @if (Model.UpcomingAppointments.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    @if (!isPatient)
+                                    {
+                                        <th>Patient</th>
+                                    }
+                                    <th>Doctor</th>
+                                    <th>Date &amp; Time</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var a in Model.UpcomingAppointments)
+                                {
+                                    <tr>
+                                        @if (!isPatient)
+                                        {
+                                            <td>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="patient-avatar" style="width:32px;height:32px;font-size:12px;">
+                                                        @(a.Patient?.FirstName?.Substring(0,1) ?? "?")
+                                                    </div>
+                                                    @a.Patient?.FullName
+                                                </div>
+                                            </td>
+                                        }
+                                        <td>@a.Doctor?.FullName</td>
+                                        <td>@a.AppointmentDate.ToString("dd MMM, HH:mm")</td>
+                                        <td>
+                                            @if (a.AppointmentType == "Telemedicine")
+                                            {
+                                                <span class="badge bg-info"><i class="fas fa-video me-1"></i>Tele</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary"><i class="fas fa-hospital me-1"></i>In-Person</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge status-@a.Status.ToLower()">@a.Status</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-times"></i>
+                        <h5>No upcoming appointments</h5>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- AI ALERTS -->
+    <div class="col-lg-5">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-robot me-2 text-danger"></i>@(isPatient ? "My Health Alerts" : "AI Alerts")</span>
+                @if (Model.UnacknowledgedAlerts > 0)
+                {
+                    <span class="badge bg-danger">@Model.UnacknowledgedAlerts unread</span>
+                }
+            </div>
+            <div class="card-body p-0">
+                @if (Model.RecentAlerts.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var alert in Model.RecentAlerts)
+                        {
+                            <div class="list-group-item border-0 py-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <span class="badge severity-@alert.Severity.ToLower() mb-1">@alert.Severity</span>
+                                        <p class="mb-1" style="font-size:13px;font-weight:600;">@alert.AlertMessage</p>
+                                        <small class="text-muted">
+                                            @if (!isPatient)
+                                            {
+                                                <i class="fas fa-user me-1"></i>@alert.Patient?.FullName
+                                                <span>&nbsp;·&nbsp;</span>
+                                            }
+                                            @alert.AlertDate.ToString("dd MMM HH:mm")
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle text-success"></i>
+                        <h5>No active alerts</h5>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="row g-3 mt-1">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><i class="fas fa-bolt me-2 text-warning"></i>Quick Actions</div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    @if (isPatient)
+                    {
+                        <a asp-controller="Appointment" asp-action="Index" class="btn btn-outline-success">
+                            <i class="fas fa-calendar-check me-2"></i>View Appointments
+                        </a>
+                        <a asp-controller="Prescription" asp-action="Index" class="btn btn-outline-warning">
+                            <i class="fas fa-prescription-bottle-alt me-2"></i>View Prescriptions
+                        </a>
+                        <a asp-controller="Vitals" asp-action="Index" class="btn btn-outline-info">
+                            <i class="fas fa-heartbeat me-2"></i>View Vitals
+                        </a>
+                        <a asp-controller="AI" asp-action="SymptomChecker" class="btn btn-outline-primary">
+                            <i class="fas fa-robot me-2"></i>Ask Health Assistant
+                        </a>
+                    }
+                    else
+                    {
+                        @if (canRegisterOrBook)
+                        {
+                            <a asp-controller="Patient" asp-action="Create" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-2"></i>Register Patient
+                            </a>
+                            <a asp-controller="Appointment" asp-action="Create" class="btn btn-outline-success">
+                                <i class="fas fa-calendar-plus me-2"></i>Book Appointment
+                            </a>
+                        }
+                        @if (canRecordVitals)
+                        {
+                            <a asp-controller="Vitals" asp-action="Create" class="btn btn-outline-info">
+                                <i class="fas fa-heartbeat me-2"></i>Record Vitals
+                            </a>
+                        }
+                    }
+                    @if (!isPatient && (User.IsInRole("Doctor") || User.IsInRole("Admin")))
+                    {
+                        <a asp-controller="Prescription" asp-action="Create" class="btn btn-outline-warning">
+                            <i class="fas fa-prescription me-2"></i>New Prescription
+                        </a>
+                        <a asp-controller="Admission" asp-action="Create" class="btn btn-outline-danger">
+                            <i class="fas fa-bed me-2"></i>Admit Patient
+                        </a>
+                    }
+                    @if (!isPatient && User.IsInRole("Admin"))
+                    {
+                        <a asp-controller="Report" asp-action="Summary" class="btn btn-outline-secondary">
+                            <i class="fas fa-chart-bar me-2"></i>View Reports
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

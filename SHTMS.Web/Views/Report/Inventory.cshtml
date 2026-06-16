@@ -1,0 +1,79 @@
+@model List<Medication>
+@{
+    ViewData["Title"] = "Medication Inventory Report";
+    var prescriptionCounts = ViewBag.PrescriptionCounts as Dictionary<int, (int Count, DateTime? LastPrescribed)>;
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Reports</a></li>
+            <li class="breadcrumb-item active">Inventory</li>
+        </ol>
+    </nav>
+    <a asp-action="ExportInventoryCsv" asp-route-lowStock="@ViewBag.LowStock" class="btn btn-sm btn-outline-success">
+        <i class="fas fa-download me-1"></i> Export CSV
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small">Category</label>
+                <select name="category" class="form-select form-select-sm" asp-items="ViewBag.CategoryList">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <div class="form-check mt-4">
+                    <input type="checkbox" name="lowStock" value="true" class="form-check-input" @(ViewBag.LowStock == true ? "checked" : "") />
+                    <label class="form-check-label small">Low Stock Only</label>
+                </div>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter me-1"></i>Apply</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-4"><div class="card bg-primary text-white"><div class="card-body text-center"><h5>@ViewBag.TotalItems</h5><small>Total Items</small></div></div></div>
+    <div class="col-md-4"><div class="card bg-danger text-white"><div class="card-body text-center"><h5>@ViewBag.LowStockCount</h5><small>Low Stock Items</small></div></div></div>
+    <div class="col-md-4"><div class="card bg-info text-white"><div class="card-body text-center"><h5>@Model.Count</h5><small>Filtered Results</small></div></div></div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-striped table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>Medication</th><th>Generic Name</th><th>Category</th><th>Form</th><th>Strength</th>
+                    <th>Stock</th><th>Reorder</th><th>Unit Price</th><th>Expiry</th>
+                    <th>Prescriptions</th><th>Last Prescribed</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model)
+                {
+                    var pc = prescriptionCounts?.GetValueOrDefault(m.MedicationID);
+                    var isLow = m.StockQuantity <= m.ReorderLevel;
+                    <tr class="@(isLow ? "table-danger" : "")">
+                        <td>@m.MedicationName</td>
+                        <td>@m.GenericName</td>
+                        <td>@m.Category</td>
+                        <td>@m.DosageForm</td>
+                        <td>@m.Strength</td>
+                        <td><strong class="@(isLow ? "text-danger" : "")">@m.StockQuantity</strong></td>
+                        <td>@m.ReorderLevel</td>
+                        <td>R @(m.UnitPrice?.ToString("N2") ?? "0.00")</td>
+                        <td>@(m.ExpiryDate?.ToString("dd MMM yyyy") ?? "N/A")</td>
+                        <td>@(pc?.Count ?? 0)</td>
+                        <td>@(pc?.LastPrescribed?.ToString("dd MMM yyyy") ?? "Never")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

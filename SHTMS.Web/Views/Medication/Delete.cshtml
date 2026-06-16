@@ -1,0 +1,30 @@
+@model SHTMS.Web.Models.Medication
+@{
+    ViewData["Title"] = "Delete Medication";
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Medications</a></li>
+        <li class="breadcrumb-item active">Delete</li>
+    </ol>
+</nav>
+<div class="card" style="max-width:500px;">
+    <div class="card-header text-danger"><i class="fas fa-trash me-2"></i>Delete Medication</div>
+    <div class="card-body">
+        <div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Are you sure you want to delete <strong>@Model.MedicationName</strong>?</div>
+        <dl class="row">
+            <dt class="col-sm-4">Name</dt><dd class="col-sm-8">@Model.MedicationName</dd>
+            <dt class="col-sm-4">Category</dt><dd class="col-sm-8">@(Model.Category ?? "—")</dd>
+            <dt class="col-sm-4">Stock</dt><dd class="col-sm-8">@Model.StockQuantity</dd>
+        </dl>
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="MedicationID" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash me-2"></i>Confirm Delete</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

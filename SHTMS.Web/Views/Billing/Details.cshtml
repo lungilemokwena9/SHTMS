@@ -1,0 +1,39 @@
+@model SHTMS.Web.Models.Billing
+@{
+    ViewData["Title"] = "Invoice Details";
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Billing</a></li>
+        <li class="breadcrumb-item active">INV-@Model.BillingID.ToString("D5")</li>
+    </ol>
+</nav>
+<div class="card" style="max-width:650px;">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-file-invoice-dollar me-2 text-primary"></i>Invoice INV-@Model.BillingID.ToString("D5")</span>
+        <span class="badge status-@Model.PaymentStatus.ToLower()">@Model.PaymentStatus</span>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-4">Patient</dt><dd class="col-sm-8">@Model.Patient?.FullName</dd>
+            <dt class="col-sm-4">Date</dt><dd class="col-sm-8">@Model.BillingDate.ToString("dd MMM yyyy")</dd>
+            <dt class="col-sm-4">Total Amount</dt><dd class="col-sm-8 fw-bold">R @Model.TotalAmount.ToString("N2")</dd>
+            <dt class="col-sm-4">Paid Amount</dt><dd class="col-sm-8 text-success">R @Model.PaidAmount.ToString("N2")</dd>
+            <dt class="col-sm-4">Balance</dt>
+            <dd class="col-sm-8">
+                @{
+                    var balance = Model.TotalAmount - Model.PaidAmount;
+                }
+                <span class="@(balance > 0 ? "text-danger fw-bold" : "text-success")">R @balance.ToString("N2")</span>
+            </dd>
+            <dt class="col-sm-4">Payment Method</dt><dd class="col-sm-8">@(Model.PaymentMethod ?? "—")</dd>
+            <dt class="col-sm-4">Status</dt><dd class="col-sm-8"><span class="badge status-@Model.PaymentStatus.ToLower()">@Model.PaymentStatus</span></dd>
+            <dt class="col-sm-4">Notes</dt><dd class="col-sm-8">@(Model.Notes ?? "—")</dd>
+        </dl>
+        <div class="d-flex gap-2 mt-3">
+            <a asp-action="Edit" asp-route-id="@Model.BillingID" class="btn btn-warning btn-sm"><i class="fas fa-edit me-1"></i>Edit</a>
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to List</a>
+        </div>
+    </div>
+</div>

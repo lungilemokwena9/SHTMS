@@ -1,0 +1,30 @@
+@model SHTMS.Web.Models.Patient
+@{
+    ViewData["Title"] = "Deactivate Patient";
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Patients</a></li>
+        <li class="breadcrumb-item active">Deactivate</li>
+    </ol>
+</nav>
+<div class="card" style="max-width:500px;">
+    <div class="card-header text-danger"><i class="fas fa-trash me-2"></i>Deactivate Patient</div>
+    <div class="card-body">
+        <div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Are you sure you want to deactivate <strong>@Model.FullName</strong>?</div>
+        <dl class="row">
+            <dt class="col-sm-4">Name</dt><dd class="col-sm-8">@Model.FullName</dd>
+            <dt class="col-sm-4">ID Number</dt><dd class="col-sm-8">@(Model.IDNumber ?? "—")</dd>
+            <dt class="col-sm-4">Date of Birth</dt><dd class="col-sm-8">@Model.DateOfBirth.ToString("dd MMM yyyy")</dd>
+        </dl>
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="PatientID" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash me-2"></i>Confirm Deactivate</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

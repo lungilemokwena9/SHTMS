@@ -1,0 +1,86 @@
+@model SHTMS.Web.Models.PatientVitals
+@{
+    ViewData["Title"] = "Record Vitals";
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Vitals</a></li>
+        <li class="breadcrumb-item active">Record Vitals</li>
+    </ol>
+</nav>
+<div class="card" style="max-width:700px;">
+    <div class="card-header"><i class="fas fa-heartbeat me-2 text-primary"></i>Record Patient Vitals</div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="PatientID" class="form-label"></label>
+                    <select asp-for="PatientID" asp-items="ViewBag.PatientID" class="form-select">
+                        <option value="">-- Select Patient --</option>
+                    </select>
+                    <span asp-validation-for="PatientID" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="NurseID" class="form-label"></label>
+                    <select asp-for="NurseID" asp-items="ViewBag.NurseID" class="form-select">
+                        <option value="">-- Select Nurse --</option>
+                    </select>
+                    <span asp-validation-for="NurseID" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Temperature" class="form-label"></label>
+                    <input asp-for="Temperature" class="form-control" type="number" step="0.1" />
+                    <span asp-validation-for="Temperature" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="BloodPressureSys" class="form-label"></label>
+                    <input asp-for="BloodPressureSys" class="form-control" type="number" />
+                    <span asp-validation-for="BloodPressureSys" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="BloodPressureDia" class="form-label"></label>
+                    <input asp-for="BloodPressureDia" class="form-control" type="number" />
+                    <span asp-validation-for="BloodPressureDia" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="HeartRate" class="form-label"></label>
+                    <input asp-for="HeartRate" class="form-control" type="number" />
+                    <span asp-validation-for="HeartRate" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="RespiratoryRate" class="form-label"></label>
+                    <input asp-for="RespiratoryRate" class="form-control" type="number" />
+                    <span asp-validation-for="RespiratoryRate" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="OxygenSaturation" class="form-label"></label>
+                    <input asp-for="OxygenSaturation" class="form-control" type="number" step="0.1" />
+                    <span asp-validation-for="OxygenSaturation" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Weight" class="form-label"></label>
+                    <input asp-for="Weight" class="form-control" type="number" step="0.1" />
+                    <span asp-validation-for="Weight" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Height" class="form-label"></label>
+                    <input asp-for="Height" class="form-control" type="number" step="0.1" />
+                    <span asp-validation-for="Height" class="text-danger small"></span>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Notes" class="form-label"></label>
+                    <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                    <span asp-validation-for="Notes" class="text-danger small"></span>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Vitals</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+@section Scripts { @await Html.PartialAsync("_ValidationScriptsPartial") }

@@ -1,0 +1,33 @@
+@model SHTMS.Web.Models.PatientVitals
+@{
+    ViewData["Title"] = "Delete Vitals Record";
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Vitals</a></li>
+        <li class="breadcrumb-item active">Delete</li>
+    </ol>
+</nav>
+<div class="card" style="max-width:500px;">
+    <div class="card-header text-danger"><i class="fas fa-trash me-2"></i>Delete Vitals Record</div>
+    <div class="card-body">
+        <div class="alert alert-warning"><i class="fas fa-exclamation-triangle me-2"></i>Are you sure you want to delete this vitals record?</div>
+        <dl class="row">
+            <dt class="col-sm-4">Patient</dt><dd class="col-sm-8">@Model.Patient?.FullName</dd>
+            <dt class="col-sm-4">Date/Time</dt><dd class="col-sm-8">@Model.RecordedDate.ToString("dd MMM yyyy HH:mm")</dd>
+            <dt class="col-sm-4">BP</dt><dd class="col-sm-8">@Model.BloodPressure</dd>
+            <dt class="col-sm-4">Heart Rate</dt><dd class="col-sm-8">@(Model.HeartRate.HasValue ? Model.HeartRate + " bpm" : "—")</dd>
+            <dt class="col-sm-4">Temp</dt><dd class="col-sm-8">@(Model.Temperature.HasValue ? Model.Temperature.Value.ToString("F1") + " °C" : "—")</dd>
+            <dt class="col-sm-4">SpO₂</dt><dd class="col-sm-8">@(Model.OxygenSaturation.HasValue ? Model.OxygenSaturation.Value.ToString("F0") + "%" : "—")</dd>
+        </dl>
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="VitalsID" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash me-2"></i>Confirm Delete</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

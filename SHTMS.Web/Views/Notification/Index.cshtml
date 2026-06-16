@@ -1,0 +1,134 @@
+@model List<SHTMS.Web.Models.Notification>
+@inject SHTMS.Web.Services.LocalizationService L
+@{
+    ViewData["Title"] = "Notifications";
+    int unreadCount = ViewBag.UnreadCount ?? 0;
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-bell me-2"></i>@ViewData["Title"]</h2>
+        @if (unreadCount > 0)
+        {
+            <button id="markAllReadBtn" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-check-double me-1"></i>Mark All as Read (@unreadCount)
+            </button>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No notifications yet</h5>
+            <p class="text-muted">You'll see appointment reminders, prescription updates, and more here.</p>
+        </div>
+    }
+    else
+    {
+        <div class="list-group" id="notificationList">
+            @foreach (var n in Model)
+            {
+                var bgClass = n.IsRead ? "" : "list-group-item-light";
+                var iconMap = new Dictionary<string, string>
+                {
+                    {"calendar-check", "fas fa-calendar-check"},
+                    {"prescription", "fas fa-prescription-bottle-alt"},
+                    {"pills", "fas fa-pills"},
+                    {"file-invoice", "fas fa-file-invoice-dollar"},
+                    {"heartbeat", "fas fa-heartbeat"},
+                    {"bed", "fas fa-bed"},
+                    {"exclamation-triangle", "fas fa-exclamation-triangle"},
+                    {"check-circle", "fas fa-check-circle"},
+                    {"user-plus", "fas fa-user-plus"},
+                    {"bell", "fas fa-bell"}
+                };
+                var iconClass = iconMap.ContainsKey(n.Icon) ? iconMap[n.Icon] : "fas fa-bell";
+                var iconColor = n.Category switch
+                {
+                    "Appointment" => "#3498db",
+                    "Prescription" => "#9b59b6",
+                    "Medication" => "#e67e22",
+                    "Billing" => "#e74c3c",
+                    "Vitals" => "#2ecc71",
+                    "Admission" => "#1abc9c",
+                    "Alert" => "#f39c12",
+                    _ => "#7f8c8d"
+                };
+
+                <div class="list-group-item @bgClass d-flex align-items-start py-3 notification-item"
+                     data-id="@n.NotificationID" data-read="@n.IsRead.ToString().ToLower()">
+                    <div class="me-3" style="color:@iconColor;font-size:1.3rem;width:30px;text-align:center;">
+                        <i class="@iconClass"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-semibold @(n.IsRead ? "" : "text-dark")">@n.Message</span>
+                            @if (!n.IsRead)
+                            {
+                                <span class="badge bg-primary rounded-pill" style="font-size:0.6rem;">NEW</span>
+                            }
+                        </div>
+                        <small class="text-muted">
+                            @n.CreatedDate.ToString("dd MMM yyyy HH:mm")
+                            @if (n.IsRead && n.ReadDate.HasValue)
+                            {
+                                <span> · Read @n.ReadDate.Value.ToString("dd MMM HH:mm")</span>
+                            }
+                        </small>
+                    </div>
+                    <div class="ms-2">
+                        @if (!string.IsNullOrEmpty(n.LinkUrl))
+                        {
+                            <a href="@n.LinkUrl" class="btn btn-sm btn-outline-secondary" title="View">
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
+                        }
+                        @if (!n.IsRead)
+                        {
+                            <button class="btn btn-sm btn-outline-success mark-read-btn" data-id="@n.NotificationID" title="Mark as read">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.mark-read-btn').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const id = this.dataset.id;
+                const item = document.querySelector(`.notification-item[data-id="${id}"]`);
+                await fetch(`/Notification/MarkRead/${id}`, { method: 'POST' });
+                item.classList.remove('list-group-item-light');
+                item.querySelector('.badge')?.remove();
+                this.remove();
+                updateBellCount();
+            });
+        });
+
+        const markAllBtn = document.getElementById('markAllReadBtn');
+        if (markAllBtn) {
+            markAllBtn.addEventListener('click', async function() {
+                await fetch('/Notification/MarkAllRead', { method: 'POST' });
+                location.reload();
+            });
+        }
+
+        async function updateBellCount() {
+            try {
+                const resp = await fetch('/Notification/GetUnreadCount');
+                const data = await resp.json();
+                const badge = document.getElementById('notificationBadge');
+                if (badge) {
+                    badge.textContent = data.count;
+                    badge.style.display = data.count > 0 ? '' : 'none';
+                }
+            } catch(e) {}
+        }
+    </script>
+}

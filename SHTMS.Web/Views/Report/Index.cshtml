@@ -1,0 +1,83 @@
+@{
+    ViewData["Title"] = "Reports";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+            <li class="breadcrumb-item active">Reports</li>
+        </ol>
+    </nav>
+</div>
+<div class="row g-4">
+    <div class="col-md-6 col-lg-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-chart-pie fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Summary Report</h5>
+                <p class="card-text small text-muted">Management dashboard with KPIs: patients, appointments, revenue, admissions, and alerts.</p>
+                <a asp-action="Summary" class="btn btn-outline-primary btn-sm">Generate</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Patient Report</h5>
+                <p class="card-text small text-muted">View patient demographics, registrations, and visit history.</p>
+                <a asp-action="Patients" class="btn btn-outline-primary btn-sm">Generate</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Appointment Report</h5>
+                <p class="card-text small text-muted">Appointment volumes, no-shows, and doctor schedules.</p>
+                <a asp-action="Appointments" class="btn btn-outline-primary btn-sm">Generate</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-procedures fa-3x text-danger mb-3"></i>
+                <h5 class="card-title">Admission Report</h5>
+                <p class="card-text small text-muted">Admissions, discharges, bed occupancy, and length of stay.</p>
+                <a asp-action="Admissions" class="btn btn-outline-primary btn-sm">Generate</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-prescription fa-3x text-secondary mb-3"></i>
+                <h5 class="card-title">Prescription Report</h5>
+                <p class="card-text small text-muted">Prescription volumes, active vs dispensed, and trends.</p>
+                <a asp-action="Prescriptions" class="btn btn-outline-primary btn-sm">Generate</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-file-invoice-dollar fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Revenue Report</h5>
+                <p class="card-text small text-muted">Income, outstanding balances, and payment summaries.</p>
+                <a asp-action="Revenue" class="btn btn-outline-primary btn-sm">Generate</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <i class="fas fa-pills fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Medication Inventory Report</h5>
+                <p class="card-text small text-muted">Stock levels, low-stock alerts, prescription counts, and categories.</p>
+                <a asp-action="Inventory" class="btn btn-outline-primary btn-sm">Generate</a>
+            </div>
+        </div>
+    </div>
+</div>

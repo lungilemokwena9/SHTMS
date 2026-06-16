@@ -1,0 +1,357 @@
+@inject SHTMS.Web.Services.LocalizationService L
+
+<!DOCTYPE html>
+<html lang="@L.CurrentLanguage">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — SHTMS</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+
+<!-- ── SIDEBAR ──────────────────────────────────────────── -->
+<nav id="sidebar">
+    <a class="sidebar-brand d-block" asp-controller="Dashboard" asp-action="Index">
+        <div class="brand-icon"><i class="fas fa-hospital-alt"></i></div>
+        <h5>@L.T("app.name")</h5>
+        <small>@L.T("app.subtitle")</small>
+    </a>
+
+    <div class="pt-2">
+        <!-- MAIN -->
+        <div class="sidebar-section-title">@L.T("nav.main")</div>
+        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")"
+           asp-controller="Dashboard" asp-action="Index">
+            <i class="fas fa-tachometer-alt"></i> @L.T("nav.dashboard")
+        </a>
+        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "AI" ? "active" : "")"
+           asp-controller="AI" asp-action="Index">
+            <i class="fas fa-robot"></i> @L.T("nav.ai_hub")
+        </a>
+
+        @{
+            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+            bool isPatient = role == "Patient";
+            bool isDoctor = role == "Doctor";
+            bool isNurse = role == "Nurse";
+            bool isPharmacist = role == "Pharmacist";
+            bool isAdmin = role == "Admin";
+            bool isStaff = isDoctor || isNurse || isPharmacist || isAdmin;
+            bool isClinical = isDoctor || isNurse || isAdmin;
+            bool isPharmacyStaff = isPharmacist || isAdmin;
+            bool isFinanceStaff = isAdmin;
+        }
+
+        @* ── PATIENT MENU ── *@
+        @if (isPatient)
+        {
+            <div class="sidebar-section-title">@L.T("nav.my_health")</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Appointment" ? "active" : "")"
+               asp-controller="Appointment" asp-action="Index">
+                <i class="fas fa-calendar-check"></i> @L.T("nav.my_appointments")
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Prescription" ? "active" : "")"
+               asp-controller="Prescription" asp-action="Index">
+                <i class="fas fa-prescription-bottle-alt"></i> @L.T("nav.my_prescriptions")
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Vitals" ? "active" : "")"
+               asp-controller="Vitals" asp-action="Index">
+                <i class="fas fa-heartbeat"></i> @L.T("nav.my_vitals")
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Billing" ? "active" : "")"
+               asp-controller="Billing" asp-action="Index">
+                <i class="fas fa-file-invoice-dollar"></i> @L.T("nav.my_bills")
+            </a>
+        }
+
+        @* ── CLINICAL MENU (Doctor, Nurse, Admin) ── *@
+        @if (isClinical)
+        {
+            <div class="sidebar-section-title">@L.T("nav.clinical")</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Patient" ? "active" : "")"
+               asp-controller="Patient" asp-action="Index">
+                <i class="fas fa-user-injured"></i> @L.T("nav.patients")
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Appointment" ? "active" : "")"
+               asp-controller="Appointment" asp-action="Index">
+                <i class="fas fa-calendar-check"></i> @L.T("nav.appointments")
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Vitals" ? "active" : "")"
+               asp-controller="Vitals" asp-action="Index">
+                <i class="fas fa-heartbeat"></i> @L.T("nav.patient_vitals")
+            </a>
+        }
+
+        @* ── DOCTOR/ADMIN MENU ── *@
+        @if (isDoctor || isAdmin)
+        {
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Prescription" ? "active" : "")"
+               asp-controller="Prescription" asp-action="Index">
+                <i class="fas fa-prescription-bottle-alt"></i> @L.T("nav.prescriptions")
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Admission" ? "active" : "")"
+               asp-controller="Admission" asp-action="Index">
+                <i class="fas fa-bed"></i> @L.T("nav.admissions")
+            </a>
+        }
+
+        @* ── PHARMACY MENU (Pharmacist, Admin) ── *@
+        @if (isPharmacyStaff)
+        {
+            <div class="sidebar-section-title">@L.T("nav.pharmacy")</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Medication" ? "active" : "")"
+               asp-controller="Medication" asp-action="Index">
+                <i class="fas fa-pills"></i> @L.T("nav.medications")
+            </a>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Prescription" ? "active" : "")"
+               asp-controller="Prescription" asp-action="Index">
+                <i class="fas fa-prescription-bottle-alt"></i> @L.T("nav.dispense_prescriptions")
+            </a>
+        }
+
+        @* ── FINANCE MENU (Admin) ── *@
+        @if (isFinanceStaff)
+        {
+            <div class="sidebar-section-title">@L.T("nav.finance")</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Billing" ? "active" : "")"
+               asp-controller="Billing" asp-action="Index">
+                <i class="fas fa-file-invoice-dollar"></i> @L.T("nav.billing")
+            </a>
+        }
+
+        @* ── REPORTS (Doctor, Admin) ── *@
+        @if (isDoctor || isAdmin)
+        {
+            <div class="sidebar-section-title">@L.T("nav.reports")</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Report" ? "active" : "")"
+               asp-controller="Report" asp-action="Index">
+                <i class="fas fa-chart-bar"></i> @L.T("nav.reports_menu")
+            </a>
+        }
+
+        @* ── ADMIN ONLY ── *@
+        @if (isAdmin)
+        {
+            <div class="sidebar-section-title">@L.T("nav.administration")</div>
+            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" ? "active" : "")"
+               asp-controller="User" asp-action="Index">
+                <i class="fas fa-users-cog"></i> @L.T("nav.user_management")
+            </a>
+        }
+    </div>
+
+    <!-- SIDEBAR FOOTER -->
+    <div class="sidebar-footer">
+        <!-- Language Switcher -->
+        <div class="lang-switcher mb-2">
+            <form asp-controller="Language" asp-action="Set" method="post" class="d-flex gap-1 flex-wrap">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
+                @{
+                    var currentLang = Context.Request.Cookies["SHTMS.Language"] ?? "en";
+                    var languages = new Dictionary<string, string>
+                    {
+                        {"en", "EN"}, {"af", "AF"}, {"zu", "ZU"}, {"xh", "XH"},
+                        {"st", "ST"}, {"tn", "TN"}, {"nso", "NSO"}, {"ts", "TS"},
+                        {"ss", "SS"}, {"ve", "VE"}, {"nr", "NR"}
+                    };
+                }
+                @foreach (var lang in languages)
+                {
+                    <button type="submit" name="lang" value="@lang.Key"
+                            class="lang-btn @(currentLang == lang.Key ? "active" : "")"
+                            title="@lang.Key">
+                        @lang.Value
+                    </button>
+                }
+            </form>
+        </div>
+        <div class="user-info">
+            <div class="user-avatar">
+                @(User.Identity?.Name?.Substring(0,1).ToUpper() ?? "U")
+            </div>
+            <div>
+                <p class="user-name">@User.Identity?.Name</p>
+                <p class="user-role">@role</p>
+            </div>
+        </div>
+        <form asp-controller="Account" asp-action="Logout" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-sm btn-outline-secondary w-100" style="color:#c8d6e5;border-color:rgba(255,255,255,0.2);">
+                <i class="fas fa-sign-out-alt me-1"></i> @L.T("nav.logout")
+            </button>
+        </form>
+    </div>
+</nav>
+
+<!-- ── MAIN CONTENT ──────────────────────────────────────── -->
+<div id="main-content">
+    <!-- TOP BAR -->
+    <div class="topbar">
+        <h1 class="page-title">@(ViewData["Title"] ?? "SHTMS")</h1>
+        <div class="topbar-actions">
+            @if (TempData["Success"] != null)
+            {
+                <span class="badge bg-success"><i class="fas fa-check me-1"></i>@TempData["Success"]</span>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <span class="badge bg-danger"><i class="fas fa-exclamation-triangle me-1"></i>@TempData["Error"]</span>
+            }
+            <!-- Notification Bell -->
+            <div class="dropdown" id="notificationDropdown">
+                <button class="btn btn-link text-decoration-none position-relative p-0" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" id="notificationBell"
+                        style="color:#4a5568;font-size:1.3rem;">
+                    <i class="fas fa-bell"></i>
+                    <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                          style="font-size:0.6rem;display:none;">
+                        0
+                    </span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-0" style="width:360px;max-height:400px;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,0.15);">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                        <strong class="text-muted" style="font-size:0.85rem;">Notifications</strong>
+                        <a class="text-decoration-none" href="/Notification/Index" style="font-size:0.8rem;">View All</a>
+                    </div>
+                    <div id="notificationDropdownList">
+                        <div class="text-center py-3 text-muted" style="font-size:0.85rem;">
+                            <div class="spinner-border spinner-border-sm me-1" role="status"></div>
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <span class="badge" style="background:#e2e8f0;color:#4a5568;">
+                <i class="fas fa-clock me-1"></i>@DateTime.Now.ToString("HH:mm")
+            </span>
+        </div>
+    </div>
+
+    <!-- FLASH MESSAGES (full width) -->
+    <div class="px-4 pt-3">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+    </div>
+
+    <!-- PAGE BODY -->
+    <div class="page-content">
+        @RenderBody()
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="text-center py-3" style="font-size:12px;color:#a0aec0;border-top:1px solid #e2e8f0;background:white;">
+        &copy; @DateTime.Now.Year @L.T("app.footer") &nbsp;|&nbsp; @L.T("app.copyright")
+    </footer>
+</div>
+
+<div class="ai-assistant-widget">
+    <button class="ai-assistant-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#aiAssistantPanel" aria-expanded="false" aria-controls="aiAssistantPanel">
+        <i class="fas fa-robot"></i>
+    </button>
+    <div class="collapse ai-assistant-panel" id="aiAssistantPanel">
+        <div class="ai-assistant-header">
+            <div>
+                <strong>SHTMS Assistant</strong>
+                <small>@(isPatient ? "Patient guidance" : "Workflow support")</small>
+            </div>
+            <span class="badge bg-info">Beta</span>
+        </div>
+        <div class="ai-assistant-body">
+            <p class="small text-muted mb-3">Get quick help without leaving your current page.</p>
+            <div class="d-grid gap-2">
+                <a asp-controller="AI" asp-action="SymptomChecker" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-stethoscope me-1"></i> Symptom Guidance
+                </a>
+                @if (isStaff)
+                {
+                    <a asp-controller="AI" asp-action="MedicationAssistant" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-pills me-1"></i> Medication Tools
+                    </a>
+                    <a asp-controller="AI" asp-action="ClinicalSupport" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-heart-pulse me-1"></i> Clinical Alerts
+                    </a>
+                }
+                else
+                {
+                    <a asp-controller="Appointment" asp-action="Index" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-calendar-check me-1"></i> My Appointments
+                    </a>
+                    <a asp-controller="Vitals" asp-action="Index" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-heartbeat me-1"></i> My Vitals
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ── Notification Bell Polling ──
+    async function loadNotifications() {
+        try {
+            const resp = await fetch('/Notification/GetRecent');
+            const data = await resp.json();
+            const badge = document.getElementById('notificationBadge');
+            const list = document.getElementById('notificationDropdownList');
+
+            // Update badge
+            if (badge) {
+                badge.textContent = data.unreadCount;
+                badge.style.display = data.unreadCount > 0 ? '' : 'none';
+            }
+
+            // Update dropdown list
+            if (list && data.notifications) {
+                if (data.notifications.length === 0) {
+                    list.innerHTML = '<div class="text-center py-3 text-muted" style="font-size:0.85rem;">No notifications</div>';
+                } else {
+                    list.innerHTML = data.notifications.map(n => {
+                        const bg = n.isRead ? '' : 'background:#f0f4ff;';
+                        const bold = n.isRead ? '' : 'fw-bold';
+                        const dot = n.isRead ? '' : '<span class="badge bg-primary rounded-pill ms-1" style="font-size:0.5rem;">NEW</span>';
+                        const link = n.linkUrl ? `<a href="${n.linkUrl}" class="stretched-link"></a>` : '';
+                        return `<div class="px-3 py-2 border-bottom position-relative" style="${bg}cursor:pointer;">
+                            <div class="${bold}" style="font-size:0.85rem;">${n.message}${dot}</div>
+                            <small class="text-muted">${n.createdDate}</small>
+                            ${link}
+                        </div>`;
+                    }).join('');
+                }
+            }
+        } catch(e) {
+            console.error('Notification load error:', e);
+        }
+    }
+
+    // Load on page ready
+    document.addEventListener('DOMContentLoaded', function() {
+        loadNotifications();
+        // Poll every 30 seconds
+        setInterval(loadNotifications, 30000);
+    });
+
+    // Reload when dropdown opens
+    document.getElementById('notificationBell')?.addEventListener('click', function() {
+        loadNotifications();
+    });
+</script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

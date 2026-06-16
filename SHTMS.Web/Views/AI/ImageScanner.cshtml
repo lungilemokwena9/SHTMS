@@ -1,0 +1,241 @@
+@model ImageScannerViewModel
+@{
+    ViewData["Title"] = "AI Image Scanner";
+    var isStaff = User.IsInRole("Doctor") || User.IsInRole("Nurse") || User.IsInRole("Pharmacist") || User.IsInRole("Admin");
+}
+
+<div class="page-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">AI Hub</a></li>
+            <li class="breadcrumb-item active">Image Scanner</li>
+        </ol>
+    </nav>
+    <h2><i class="fas fa-camera me-2 text-warning"></i>AI Image Scanner</h2>
+    <p class="text-muted">Upload and scan documents with text extraction and analysis in context.</p>
+</div>
+
+@if (isStaff)
+{
+    <div class="alert alert-info border-0 shadow-sm mb-3">
+        <i class="fas fa-user-shield me-2"></i>
+        Document scanning is intended for staff verification workflows.
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Upload Form -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Upload Document</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="ImageScanner" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Document Type</label>
+                        <select name="ScanType" class="form-select" required>
+                            <option value="prescription" selected="@(Model.ScanType == "prescription")">
+                                📋 Prescription / Script
+                            </option>
+                            <option value="lab_report" selected="@(Model.ScanType == "lab_report")">
+                                🔬 Lab Report / Pathology
+                            </option>
+                            <option value="id_document" selected="@(Model.ScanType == "id_document")">
+                                🪪 ID Document / Identity Card
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Image File</label>
+                        <div class="upload-area p-4 text-center border rounded-3 bg-light" id="dropZone">
+                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                            <h6>Drag & drop or click to browse</h6>
+                            <p class="text-muted small mb-2">Supported: JPEG, PNG, GIF, BMP, TIFF (Max 10MB)</p>
+                            <input type="file" name="imageFile" class="form-control" accept="image/*" id="fileInput"
+                                   onchange="previewImage(this)" required>
+                        </div>
+                        <span class="text-danger small field-validation-valid" data-valmsg-for="imageFile"></span>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div id="imagePreview" class="text-center mb-3" style="display:none;">
+                        <img id="previewImg" src="" alt="Preview" class="img-fluid rounded shadow-sm" style="max-height: 250px;">
+                    </div>
+
+                    <button type="submit" class="btn btn-warning w-100" id="scanBtn">
+                        <i class="fas fa-search me-1"></i> Scan Document
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Scan Types Info -->
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body">
+                <h6><i class="fas fa-info-circle me-2 text-primary"></i>What can you scan?</h6>
+                <div class="scan-type-info mt-2">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-primary me-2">Rx</span>
+                        <small>Prescriptions — Extract doctor, medication, dosage, and quantity</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-success me-2">Lab</span>
+                        <small>Lab Reports — Parse test results and reference ranges</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-info me-2">ID</span>
+                        <small>ID Documents — Verify document format and extract details</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="col-lg-7">
+        @if (Model.ScanResults != null)
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-check me-2 text-success"></i>Scan Results</h5>
+                    <span class="badge bg-success">Confidence: @Model.ScanResults.Confidence%</span>
+                </div>
+                <div class="card-body">
+                    <!-- Uploaded Image -->
+                    @if (!string.IsNullOrEmpty(Model.UploadedFilePath))
+                    {
+                        <div class="text-center mb-3">
+                            <img src="@Model.UploadedFilePath" alt="Scanned Document" class="img-fluid rounded shadow-sm" style="max-height: 200px;">
+                            <div class="mt-1">
+                                <small class="text-muted">Scanned: @Model.ScanDate?.ToString("dd MMM yyyy HH:mm")</small>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Confidence Bar -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="fw-bold">AI Confidence</small>
+                            <small>@Model.ScanResults.Confidence%</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-@(Model.ScanResults.Confidence >= 80 ? "success" : Model.ScanResults.Confidence >= 50 ? "warning" : "danger")"
+                                 style="width: @Model.ScanResults.Confidence%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Extracted Data -->
+                    @if (Model.ScanResults.ExtractedData.Any())
+                    {
+                        <div class="mb-3">
+                            <h6><i class="fas fa-table me-1"></i>Extracted Data</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered">
+                                    @foreach (var kvp in Model.ScanResults.ExtractedData)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold bg-light" style="width: 40%;">@kvp.Key</td>
+                                            <td>@kvp.Value</td>
+                                        </tr>
+                                    }
+                                </table>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Detected Text -->
+                    <div class="mb-3">
+                        <h6><i class="fas fa-file-alt me-1"></i>Detected Text (OCR)</h6>
+                        <pre class="bg-dark text-light p-3 rounded" style="white-space: pre-wrap; font-family: 'Courier New', monospace; font-size: 0.85rem;">@Model.ScanResults.DetectedText</pre>
+                    </div>
+
+                    <!-- Analysis Notes -->
+                    <div class="alert alert-info mb-0">
+                        <h6><i class="fas fa-robot me-1"></i>AI Analysis</h6>
+                        <p class="mb-0">@Model.ScanResults.AnalysisNotes</p>
+                    </div>
+                </div>
+                <div class="card-footer bg-white text-center">
+                    <a asp-action="ImageScanner" class="btn btn-outline-warning">
+                        <i class="fas fa-redo me-1"></i> Scan Another Document
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-file-image fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Upload a document to scan</h5>
+                    <p class="text-muted small">Our AI will extract text and analyze the content automatically.</p>
+                    <div class="mt-3">
+                        <span class="badge bg-primary me-2"><i class="fas fa-check me-1"></i> OCR Text Extraction</span>
+                        <span class="badge bg-success me-2"><i class="fas fa-check me-1"></i> Data Parsing</span>
+                        <span class="badge bg-info"><i class="fas fa-check me-1"></i> AI Analysis</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .upload-area {
+        border: 2px dashed #dee2e6;
+        transition: border-color 0.3s, background-color 0.3s;
+        cursor: pointer;
+    }
+    .upload-area:hover, .upload-area.dragover {
+        border-color: #f6c23e;
+        background-color: #fff8e1;
+    }
+    .scan-type-info .badge {
+        width: 40px;
+    }
+</style>
+
+<script>
+    // Drag & drop support
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            previewImage(fileInput);
+        }
+    });
+
+    function previewImage(input) {
+        const preview = document.getElementById('imagePreview');
+        const img = document.getElementById('previewImg');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+</script>

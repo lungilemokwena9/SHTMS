@@ -1,0 +1,78 @@
+@model SHTMS.Web.Models.Prescription
+@{
+    ViewData["Title"] = "New Prescription";
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Prescriptions</a></li>
+        <li class="breadcrumb-item active">New</li>
+    </ol>
+</nav>
+<div class="card" style="max-width:700px;">
+    <div class="card-header"><i class="fas fa-prescription me-2 text-primary"></i>New Prescription</div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="PatientID" class="form-label">Patient</label>
+                    <select asp-for="PatientID" class="form-select" asp-items="ViewBag.Patients">
+                        <option value="">-- Select Patient --</option>
+                    </select>
+                    <span asp-validation-for="PatientID" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="DoctorID" class="form-label">Doctor</label>
+                    <select asp-for="DoctorID" class="form-select" asp-items="ViewBag.Doctors">
+                        <option value="">-- Select Doctor --</option>
+                    </select>
+                    <span asp-validation-for="DoctorID" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="MedicationID" class="form-label">Medication</label>
+                    <select asp-for="MedicationID" class="form-select" asp-items="ViewBag.Medications">
+                        <option value="">-- Select Medication --</option>
+                    </select>
+                    <span asp-validation-for="MedicationID" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PrescriptionDate" class="form-label"></label>
+                    <input asp-for="PrescriptionDate" class="form-control" type="date" />
+                    <span asp-validation-for="PrescriptionDate" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Dosage" class="form-label"></label>
+                    <input asp-for="Dosage" class="form-control" placeholder="e.g. 500mg twice daily" />
+                    <span asp-validation-for="Dosage" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="DurationDays" class="form-label"></label>
+                    <input asp-for="DurationDays" class="form-control" placeholder="e.g. 7 days" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Dosage" class="form-label"></label>
+                    <input asp-for="Dosage" class="form-control" type="number" min="1" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="IsDispensed" class="form-label"></label>
+                    <select asp-for="IsDispensed" class="form-select">
+                        <option value="Active">Active</option>
+                        <option value="Dispensed">Dispensed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Instructions" class="form-label"></label>
+                    <textarea asp-for="Instructions" class="form-control" rows="2" placeholder="Special instructions"></textarea>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Create Prescription</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+@section Scripts { @await Html.PartialAsync("_ValidationScriptsPartial") }

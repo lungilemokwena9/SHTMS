@@ -1,0 +1,68 @@
+@model SHTMS.Web.Models.Appointment
+@{
+    ViewData["Title"] = "Edit Appointment";
+}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Appointments</a></li>
+        <li class="breadcrumb-item active">Edit</li>
+    </ol>
+</nav>
+<div class="card" style="max-width:700px;">
+    <div class="card-header"><i class="fas fa-edit me-2 text-warning"></i>Edit Appointment</div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="AppointmentID" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:@(ViewData.ModelState.IsValid ? "none" : "block")"></div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="PatientID" class="form-label">Patient</label>
+                    <select asp-for="PatientID" class="form-select" asp-items="ViewBag.PatientList"></select>
+                    <span asp-validation-for="PatientID" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="DoctorID" class="form-label">Doctor</label>
+                    <select asp-for="DoctorID" class="form-select" asp-items="ViewBag.DoctorList"></select>
+                    <span asp-validation-for="DoctorID" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="AppointmentDate" class="form-label"></label>
+                    <input asp-for="AppointmentDate" class="form-control" type="datetime-local" />
+                    <span asp-validation-for="AppointmentDate" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="AppointmentType" class="form-label"></label>
+                    <select asp-for="AppointmentType" class="form-select">
+                        <option value="In-Person">In-Person</option>
+                        <option value="Telemedicine">Telemedicine</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label asp-for="ReasonForVisit" class="form-label"></label>
+                    <textarea asp-for="ReasonForVisit" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Status" class="form-label"></label>
+                    <select asp-for="Status" class="form-select">
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                        <option value="No-Show">No-Show</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label asp-for="Notes" class="form-label"></label>
+                    <textarea asp-for="Notes" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-warning"><i class="fas fa-save me-2"></i>Save Changes</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+@section Scripts { @await Html.PartialAsync("_ValidationScriptsPartial") }

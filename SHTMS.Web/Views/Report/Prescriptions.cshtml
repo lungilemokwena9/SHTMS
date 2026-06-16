@@ -1,0 +1,78 @@
+@model List<Prescription>
+@{
+    ViewData["Title"] = "Prescription Report";
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+            <li class="breadcrumb-item"><a asp-action="Index">Reports</a></li>
+            <li class="breadcrumb-item active">Prescriptions</li>
+        </ol>
+    </nav>
+    <a asp-action="ExportPrescriptionsCsv" asp-route-from="@ViewBag.From" asp-route-to="@ViewBag.To" asp-route-doctorId="@ViewBag.DoctorFilter" asp-route-dispensedOnly="@ViewBag.DispensedOnly" class="btn btn-sm btn-outline-success">
+        <i class="fas fa-download me-1"></i> Export CSV
+    </a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label small">From</label>
+                <input type="date" name="from" class="form-control form-control-sm" value="@ViewBag.From" />
+            </div>
+            <div class="col-auto">
+                <label class="form-label small">To</label>
+                <input type="date" name="to" class="form-control form-control-sm" value="@ViewBag.To" />
+            </div>
+            <div class="col-auto">
+                <label class="form-label small">Doctor</label>
+                <select name="doctorId" class="form-select form-select-sm" asp-items="ViewBag.DoctorList">
+                    <option value="">All</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <div class="form-check mt-4">
+                    <input type="checkbox" name="dispensedOnly" value="true" class="form-check-input" @(ViewBag.DispensedOnly == true ? "checked" : "") />
+                    <label class="form-check-label small">Dispensed Only</label>
+                </div>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter me-1"></i>Apply</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-md-4"><div class="card bg-primary text-white"><div class="card-body text-center"><h5>@ViewBag.TotalPrescriptions</h5><small>Total Prescriptions</small></div></div></div>
+    <div class="col-md-4"><div class="card bg-success text-white"><div class="card-body text-center"><h5>@ViewBag.TotalDispensed</h5><small>Dispensed</small></div></div></div>
+    <div class="col-md-4"><div class="card bg-warning text-dark"><div class="card-body text-center"><h5>@(ViewBag.TotalPrescriptions - ViewBag.TotalDispensed)</h5><small>Pending</small></div></div></div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-striped table-hover mb-0">
+            <thead class="table-dark">
+                <tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Medication</th><th>Dosage</th><th>Frequency</th><th>Duration</th><th>Dispensed</th><th>Date</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td>@p.PrescriptionID</td>
+                        <td>@p.Patient?.FullName</td>
+                        <td>@p.Doctor?.FullName</td>
+                        <td>@p.Medication?.MedicationName</td>
+                        <td>@p.Dosage</td>
+                        <td>@p.Frequency</td>
+                        <td>@p.DurationDays days</td>
+                        <td>@(p.IsDispensed ? "Yes" : "No")</td>
+                        <td>@p.PrescriptionDate.ToString("dd MMM yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

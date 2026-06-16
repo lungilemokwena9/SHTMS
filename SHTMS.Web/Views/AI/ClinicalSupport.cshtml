@@ -1,0 +1,218 @@
+@model ClinicalSupportViewModel
+@{
+    ViewData["Title"] = "AI Clinical Support";
+    var isStaff = User.IsInRole("Doctor") || User.IsInRole("Nurse") || User.IsInRole("Pharmacist") || User.IsInRole("Admin");
+}
+
+<div class="page-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index">AI Hub</a></li>
+            <li class="breadcrumb-item active">Clinical Support</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h2><i class="fas fa-heart-pulse me-2 text-danger"></i>AI Clinical Support</h2>
+            <p class="text-muted mb-0">Automated vitals analysis and clinical alerts dashboard</p>
+        </div>
+        @if (Model.UnacknowledgedCount > 0)
+        {
+            <form asp-action="AcknowledgeAllAlerts" method="post" class="d-inline">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-check-double me-1"></i> Acknowledge All (@Model.UnacknowledgedCount)
+                </button>
+            </form>
+        }
+    </div>
+</div>
+
+@if (!isStaff)
+{
+    <div class="alert alert-info border-0 shadow-sm">
+        <i class="fas fa-user-shield me-2"></i>
+        Clinical support is available to staff roles only.
+    </div>
+}
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-danger text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50">Unacknowledged</h6>
+                        <h2 class="mb-0">@Model.UnacknowledgedCount</h2>
+                    </div>
+                    <i class="fas fa-bell fa-2x text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50">Total Alerts</h6>
+                        <h2 class="mb-0">@Model.TotalAlerts</h2>
+                    </div>
+                    <i class="fas fa-chart-bar fa-2x text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-white-50">Acknowledged</h6>
+                        <h2 class="mb-0">@(Model.TotalAlerts - Model.UnacknowledgedCount)</h2>
+                    </div>
+                    <i class="fas fa-check-circle fa-2x text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vitals Analysis Form -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-stethoscope me-2"></i>Analyze Patient Vitals</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="AnalyzeVitals" method="post">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Patient</label>
+                        <select name="patientId" class="form-select" required>
+                            <option value="">-- Select a patient --</option>
+                            @foreach (var patient in Model.Patients)
+                            {
+                                <option value="@patient.PatientID">@patient.FullName (@patient.PatientID)</option>
+                            }
+                        </select>
+                        <div class="form-text">Patient must have vitals recorded for analysis.</div>
+                    </div>
+                    <button type="submit" class="btn btn-info w-100">
+                        <i class="fas fa-microchip me-1"></i> Run AI Analysis
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-body">
+                <h6><i class="fas fa-info-circle me-2 text-primary"></i>What AI Analyzes</h6>
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-1"><i class="fas fa-check text-success me-1"></i> Temperature (fever/hypothermia)</li>
+                    <li class="mb-1"><i class="fas fa-check text-success me-1"></i> Blood Pressure (hypertension/hypotension)</li>
+                    <li class="mb-1"><i class="fas fa-check text-success me-1"></i> Heart Rate (tachycardia/bradycardia)</li>
+                    <li class="mb-1"><i class="fas fa-check text-success me-1"></i> O₂ Saturation (hypoxemia)</li>
+                    <li class="mb-1"><i class="fas fa-check text-success me-1"></i> BMI (obesity/underweight)</li>
+                    <li><i class="fas fa-check text-success me-1"></i> Trend Analysis (changes over time)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-history me-2 text-primary"></i>Recent Alerts</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.RecentAlerts.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Alert</th>
+                                    <th>Severity</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var alert in Model.RecentAlerts)
+                                {
+                                    var severityColor = alert.Severity switch
+                                    {
+                                        "Critical" => "danger",
+                                        "High" => "warning",
+                                        "Medium" => "info",
+                                        _ => "secondary"
+                                    };
+
+                                    <tr class="@(alert.IsAcknowledged ? "" : "table-active")">
+                                        <td>
+                                            <strong>@(alert.Patient?.FirstName) @(alert.Patient?.LastName)</strong>
+                                            @if (alert.Patient != null)
+                                            {
+                                                <br><small class="text-muted">ID: @alert.Patient.PatientID</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            <small>@alert.AlertMessage</small>
+                                            <br><small class="text-muted">@alert.AlertType</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-@severityColor">@alert.Severity</span>
+                                        </td>
+                                        <td><small>@alert.AlertDate.ToString("dd MMM HH:mm")</small></td>
+                                        <td>
+                                            @if (alert.IsAcknowledged)
+                                            {
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Acknowledged
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-exclamation me-1"></i>Pending
+                                                </span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!alert.IsAcknowledged)
+                                            {
+                                                <form asp-action="AcknowledgeAlert" method="post" class="d-inline">
+                                                    <input type="hidden" name="alertId" value="@alert.AlertID" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Acknowledge">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-check-circle fa-4x text-success mb-3"></i>
+                        <h5 class="text-muted">No alerts generated yet</h5>
+                        <p class="text-muted small">Run AI analysis on patient vitals to generate clinical alerts.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-active {
+        background-color: #fff3cd !important;
+    }
+</style>
